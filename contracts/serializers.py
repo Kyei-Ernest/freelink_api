@@ -29,6 +29,9 @@ class ContractSerializer(serializers.ModelSerializer):
     milestones = MilestoneSerializer(many=True, read_only=True)
     audit_trails = serializers.SerializerMethodField()
 
+    
+
+
     class Meta:
         model = Contract
         fields = [
@@ -40,7 +43,7 @@ class ContractSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'milestones', 'audit_trails'
         ]
         read_only_fields = [
-            'id', 'created_at', 'updated_at',
+            'id', 'agreed_bid', 'created_at', 'updated_at',
             'client', 'freelancer'
         ]
 

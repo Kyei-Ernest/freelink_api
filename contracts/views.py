@@ -40,7 +40,7 @@ class ContractAcceptView(APIView):
     """
         Freelancer accepts a contract that is in 'pending_acceptance' state.
     """
-    permission_classes = [IsFreelancer, IsContractParty]
+    permission_classes = [IsFreelancer]
 
     def patch(self, request, pk):
         contract = get_object_or_404(Contract, pk=pk)
@@ -63,7 +63,7 @@ class ContractRejectView(APIView):
     """
         Freelancer rejects a contract that is in 'pending_acceptance' state.
     """
-    permission_classes = [IsFreelancer, IsContractParty]
+    permission_classes = [IsFreelancer]
 
     def patch(self, request, pk):
         contract = get_object_or_404(Contract, pk=pk)
@@ -127,6 +127,7 @@ class ContractRejectView(APIView):
         )
         return Response(ContractSerializer(contract).data)
 """
+
 
 class ContractDisputeView(APIView):
     """

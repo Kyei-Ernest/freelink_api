@@ -4,9 +4,6 @@ from django.conf import settings
 from jobs.models import Job
 
 
-# -------------------
-# Contract
-# -------------------
 class Contract(models.Model):
     CONTRACT_STATUS_CHOICES = [
         ("pending_acceptance", "Pending Acceptance"),
@@ -37,7 +34,7 @@ class Contract(models.Model):
     freelancer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="contracts_as_freelancer")
 
     agreed_bid = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default="USD")  # ✅ dropdown
+    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default="USD")  # dropdown
 
 
     # Legal wording + machine-readable terms
@@ -63,9 +60,8 @@ class Contract(models.Model):
         return f"Contract: {self.job.title} ({self.client} ↔ {self.freelancer})"
 
 
-# -------------------
-# Milestone
-# -------------------
+
+
 class Milestone(models.Model):
     STATUS_CHOICES = [
         ("pending", "Pending"),
@@ -92,7 +88,7 @@ class Milestone(models.Model):
     due_date = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
 
-    # ✅ Escrow handled per milestone (avoids type mismatch)
+    # Escrow handled per milestone (avoids type mismatch)
     escrow_status = models.CharField(max_length=20, choices=ESCROW_STATUS_CHOICES, default="not_funded")
     escrow_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
@@ -158,7 +154,7 @@ class ContractDocument(models.Model):
     document = models.FileField(upload_to="contracts/documents/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    # ✅ Version control support
+    # Version control support
     version = models.PositiveIntegerField(default=1)
     is_latest = models.BooleanField(default=True)
 
