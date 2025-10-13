@@ -128,8 +128,9 @@ class EscrowAccount(models.Model):
     account per contract. The EscrowAccount holds funds until release/refund.
     """
 
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='escrow_account')
     uuid = models.UUIDField(default=uuid4, editable=False, unique=True)
-    reference = models.CharField(max_length=128, blank=True, null=True)  # e.g. contract-{id}-milestone-{id}
+    reference = models.CharField(max_length=128, blank=True, null=True)
     currency = models.ForeignKey(Currency, on_delete=models.PROTECT, null=True, blank=True)
     balance = models.DecimalField(max_digits=18, decimal_places=6, default=Decimal("0.0"))
     created_at = models.DateTimeField(auto_now_add=True)

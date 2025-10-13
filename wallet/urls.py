@@ -6,7 +6,7 @@ router = DefaultRouter()
 router.register("currencies", CurrencyViewSet, basename="currency")
 
 urlpatterns = [
-    path('wallet/', WalletView.as_view(), name='wallet'),
+    path('wallet/', WalletView.as_view(), name='wallet'),# endpoint to check wallet balance 
     path("", include(router.urls)),
 
 ]
