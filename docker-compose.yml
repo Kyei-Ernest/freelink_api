@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # Django API
+  api:
+    build: .
+    container_name: freelink-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=docker-dev-secret-key-change-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,api
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=freelink
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - CACHE_BACKEND=django.core.cache.backends.redis.RedisCache
+      - CACHE_LOCATION=redis://redis:6379/1
+    depends_on:
+      - db
+      - redis
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: freelink-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=freelink
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: freelink-redis
+    ports:
+      - "6379:6379"
+
+  # PgAdmin (optional - for database management)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: freelink-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@freelink.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
