@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from django.conf import settings
 from jobs.models import Job
+from .templates_model import ProjectTemplate  # noqa: F401
 
 
 class Contract(models.Model):
@@ -55,6 +56,15 @@ class Contract(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status'], name='contract_status_idx'),
+            models.Index(fields=['client', 'status'], name='contract_client_status_idx'),
+            models.Index(fields=['freelancer', 'status'], name='contract_freelancer_status_idx'),
+            models.Index(fields=['created_at'], name='contract_created_idx'),
+        ]
 
     def __str__(self):
         return f"Contract: {self.job.title} ({self.client} ↔ {self.freelancer})"

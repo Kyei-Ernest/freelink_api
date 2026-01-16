@@ -16,9 +16,15 @@ class ContractViewSet(ModelViewSet):
         - list/retrieve: List or get details of contracts.
         - update: Update contract details.
         """
-    queryset = Contract.objects.all()
+    queryset = Contract.objects.select_related(
+        'client', 'freelancer', 'job'
+    ).prefetch_related(
+        'milestones'
+    ).all()
     permission_classes = [IsClientOrFreelancer]
     serializer_class = ContractSerializer
+    filterset_fields = ['status', 'client', 'freelancer']
+    ordering_fields = ['created_at', 'agreed_bid']
 
 
 
@@ -29,9 +35,13 @@ class ContractViewSet(ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        base_qs = Contract.objects.select_related(
+            'client', 'freelancer', 'job'
+        ).prefetch_related('milestones')
+
         if user.is_staff:
-            return Contract.objects.all()
-        return Contract.objects.filter(Q(client=user) | Q(freelancer=user))
+            return base_qs.all()
+        return base_qs.filter(Q(client=user) | Q(freelancer=user))
 
     def perform_create(self, serializer):
         serializer.save(client=self.request.user)
@@ -220,3 +230,107 @@ class MilestoneViewSet(ModelViewSet):
         contract = get_object_or_404(Contract, pk=self.kwargs['contract_id'])
         serializer.save(contract=contract, uploaded_by=self.request.user)
 """
+
+
+# ============== Project Templates ==============
+
+from rest_framework.decorators import action
+from .templates_model import ProjectTemplate
+from .serializers import (
+    ProjectTemplateSerializer,
+    ProjectTemplateListSerializer,
+    ApplyTemplateSerializer
+)
+from jobs.models import Job
+
+
+class IsAdminUser(permissions.BasePermission):
+    """Allow access only to admin users."""
+    def has_permission(self, request, view):
+        return request.user and request.user.is_staff
+
+
+class ProjectTemplateViewSet(ModelViewSet):
+    """
+    ViewSet for project templates.
+    - list/retrieve: All authenticated users
+    - create/update/delete: Admin only
+    """
+    queryset = ProjectTemplate.objects.filter(is_active=True)
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ProjectTemplateListSerializer
+        return ProjectTemplateSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [permissions.IsAuthenticated(), IsAdminUser()]
+        return [permissions.IsAuthenticated()]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def featured(self, request):
+        """Get featured templates."""
+        templates = self.queryset.filter(is_featured=True).order_by('-usage_count')[:10]
+        serializer = ProjectTemplateListSerializer(templates, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def categories(self, request):
+        """Get template categories."""
+        return Response([
+            {'value': choice[0], 'label': choice[1]}
+            for choice in ProjectTemplate.CATEGORY_CHOICES
+        ])
+
+    @action(detail=False, methods=['get'])
+    def by_category(self, request):
+        """Get templates by category."""
+        category = request.query_params.get('category')
+        if not category:
+            return Response({'error': 'category required'}, status=status.HTTP_400_BAD_REQUEST)
+        templates = self.queryset.filter(category=category)
+        serializer = ProjectTemplateListSerializer(templates, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsClient])
+    def apply(self, request, pk=None):
+        """Apply a template to create a job."""
+        template = self.get_object()
+
+        # Get custom values or use template defaults
+        title = request.data.get('custom_title', template.job_title_template)
+        budget = request.data.get('custom_budget', template.suggested_budget_max)
+        duration = request.data.get('custom_duration_days', template.suggested_duration_days)
+
+        # Create job from template
+        job = Job.objects.create(
+            client=request.user,
+            title=title,
+            description=template.job_description_template,
+            budget=budget,
+            duration=duration,
+            status='available',
+        )
+
+        # Add suggested skills
+        from jobs.models import Skill
+        for skill_name in template.suggested_skills:
+            skill, _ = Skill.objects.get_or_create(
+                name=skill_name,
+                defaults={'category': template.category}
+            )
+            job.skills_required.add(skill)
+
+        # Increment template usage
+        template.increment_usage()
+
+        return Response({
+            'message': 'Job created from template',
+            'job_id': job.id,
+            'job_title': job.title,
+        }, status=status.HTTP_201_CREATED)

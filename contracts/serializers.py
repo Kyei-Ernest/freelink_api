@@ -113,3 +113,73 @@ class AuditTrailSerializer(serializers.ModelSerializer):
         model = ContractDocument
         fields = ['id', 'contract', 'file', 'description', 'uploaded_by', 'uploaded_at']
         read_only_fields = ['id', 'uploaded_by', 'uploaded_at']"""
+
+
+# ============== Project Templates ==============
+
+from .templates_model import ProjectTemplate
+
+
+class ProjectTemplateSerializer(serializers.ModelSerializer):
+    """Serializer for project templates."""
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    created_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProjectTemplate
+        fields = [
+            'id',
+            'name',
+            'category',
+            'category_display',
+            'description',
+            'job_title_template',
+            'job_description_template',
+            'contract_terms_template',
+            'suggested_budget_min',
+            'suggested_budget_max',
+            'suggested_duration_days',
+            'milestones_template',
+            'suggested_skills',
+            'usage_count',
+            'is_featured',
+            'is_active',
+            'created_by',
+            'created_by_name',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'usage_count', 'created_by', 'created_at', 'updated_at']
+
+    def get_created_by_name(self, obj):
+        if obj.created_by:
+            return obj.created_by.full_name
+        return "System"
+
+
+class ProjectTemplateListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for template listing."""
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+
+    class Meta:
+        model = ProjectTemplate
+        fields = [
+            'id',
+            'name',
+            'category',
+            'category_display',
+            'description',
+            'suggested_budget_min',
+            'suggested_budget_max',
+            'usage_count',
+            'is_featured',
+        ]
+
+
+class ApplyTemplateSerializer(serializers.Serializer):
+    """Serializer for applying a template to create a job."""
+    template_id = serializers.IntegerField()
+    custom_title = serializers.CharField(max_length=200, required=False)
+    custom_budget = serializers.DecimalField(max_digits=10, decimal_places=2, required=False)
+    custom_duration_days = serializers.IntegerField(required=False)
+

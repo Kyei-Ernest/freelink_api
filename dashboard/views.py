@@ -60,7 +60,7 @@ class DashboardView(APIView):
         if serializer.is_valid():
             serializer.save(user=request.user)
             logger.info(
-                f"Dashboard created for user: {request.user.username} "
+                f"Dashboard created for user: {request.user.email} "
                 f"(Phone: {request.user.phone}, Role: {'Freelancer' if request.user.is_freelancer else 'Client'})"
             )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -90,7 +90,7 @@ class DashboardView(APIView):
             # Optionally update metrics after preferences change
             dashboard.update_metrics()
             logger.info(
-                f"Dashboard updated for user: {request.user.username} "
+                f"Dashboard updated for user: {request.user.email} "
                 f"(Phone: {request.user.phone}, Role: {'Freelancer' if request.user.is_freelancer else 'Client'})"
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
