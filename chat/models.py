@@ -61,4 +61,4 @@ class Message(models.Model):
             raise ValidationError("Recipient must be a client, freelancer, or admin.")
 
     def __str__(self):
-        return f"Message from {self.sender.username} to {self.recipient.username} at {self.created_at}"
+        return f"Message from {self.sender.email} to {self.recipient.email} at {self.created_at}"
