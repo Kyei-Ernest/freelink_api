@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5#$8$q_j6n#twdzq+%d_5&!t42e82t++mr%kxz22r=z33erld3'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-me-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 
 # Application definition
@@ -49,11 +50,11 @@ INSTALLED_APPS = [
     'chat',
     'proposals',
     'contracts',
+    'disputes',
     'drf_spectacular',
     'drf_spectacular_sidecar',
     'django_filters',
     'payments',
-    
     "corsheaders",
 ]
 
@@ -68,22 +69,28 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5500",  # Live Server
-    "http://localhost:5500",
-]
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:3000,http://127.0.0.1:3000',
+    cast=Csv()
+)
 
+# Allow credentials for authenticated requests
+CORS_ALLOW_CREDENTIALS = True
 
 
 REST_FRAMEWORK = {
+    # Throttling
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/day',
-        'user': '1000/day',
+        'anon': '1000/day',
+        'user': '10000/day',
     },
+    # Authentication
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
@@ -91,11 +98,21 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-
-    'DEFAULT_FILTER_BACKENDS': (
+    # Pagination (Performance)
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    # Filtering, Search, Ordering
+    'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
-    ),
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    # Schema
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    # Renderer (faster JSON)
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
@@ -134,33 +151,46 @@ WSGI_APPLICATION = 'FREELINK_root.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
+        'NAME': config('DB_NAME', default=BASE_DIR / 'db.sqlite3'),
+        'USER': config('DB_USER', default=''),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default=''),
+        'PORT': config('DB_PORT', default=''),
     }
 }
 
-"""DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'freelink_db',
-        'USER': 'freelink_user',
-        'PASSWORD': 'yourpassword',
-        'HOST': 'localhost',   # or your DB server IP
-        'PORT': '5432',
-    }
-}"""
+
+# Email settings
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default="django.core.mail.backends.console.EmailBackend"
+)
 
 
-# settings.py
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-
-
+# Caching Configuration
+# For development: local memory
+# For production: switch to Redis
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+        'BACKEND': config(
+            'CACHE_BACKEND',
+            default='django.core.cache.backends.locmem.LocMemCache'
+        ),
+        'LOCATION': config('CACHE_LOCATION', default='freelink-cache'),
+        'TIMEOUT': 300,  # 5 minutes default
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
     }
+}
+
+# Cache timeouts for different data types
+CACHE_TIMEOUTS = {
+    'job_list': 60,        # 1 minute
+    'skill_list': 3600,    # 1 hour
+    'user_profile': 300,   # 5 minutes
+    'badges': 1800,        # 30 minutes
 }
 
 # Password validation
@@ -199,6 +229,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -214,11 +248,11 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'DEBUG',
+        'level': 'DEBUG' if DEBUG else 'INFO',
     },
 }
 
 
-PAYSTACK_SECRET_KEY = "sk_test_66d7104381b1328c6db774c82e17db01c0b01f35"
-PAYSTACK_PUBLIC_KEY = "pk_test_dc1ea32617dae37270e4a5d4e9e49f1a228d4125"
-
+# Paystack API Keys (from environment variables)
+PAYSTACK_SECRET_KEY = config('PAYSTACK_SECRET_KEY', default='')
+PAYSTACK_PUBLIC_KEY = config('PAYSTACK_PUBLIC_KEY', default='')

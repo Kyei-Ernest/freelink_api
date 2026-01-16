@@ -1,0 +1,182 @@
+[
+    {
+        "model": "jobs.skill",
+        "pk": 1,
+        "fields": {
+            "name": "Python",
+            "category": "development",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 2,
+        "fields": {
+            "name": "Django",
+            "category": "development",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 3,
+        "fields": {
+            "name": "React",
+            "category": "development",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 4,
+        "fields": {
+            "name": "JavaScript",
+            "category": "development",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 5,
+        "fields": {
+            "name": "TypeScript",
+            "category": "development",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 6,
+        "fields": {
+            "name": "Node.js",
+            "category": "development",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 7,
+        "fields": {
+            "name": "PostgreSQL",
+            "category": "development",
+            "is_popular": false
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 8,
+        "fields": {
+            "name": "MongoDB",
+            "category": "development",
+            "is_popular": false
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 9,
+        "fields": {
+            "name": "AWS",
+            "category": "development",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 10,
+        "fields": {
+            "name": "Docker",
+            "category": "development",
+            "is_popular": false
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 11,
+        "fields": {
+            "name": "UI/UX Design",
+            "category": "design",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 12,
+        "fields": {
+            "name": "Figma",
+            "category": "design",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 13,
+        "fields": {
+            "name": "Adobe Photoshop",
+            "category": "design",
+            "is_popular": false
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 14,
+        "fields": {
+            "name": "Content Writing",
+            "category": "writing",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 15,
+        "fields": {
+            "name": "SEO",
+            "category": "marketing",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 16,
+        "fields": {
+            "name": "Social Media Marketing",
+            "category": "marketing",
+            "is_popular": false
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 17,
+        "fields": {
+            "name": "Video Editing",
+            "category": "video",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 18,
+        "fields": {
+            "name": "Flutter",
+            "category": "development",
+            "is_popular": true
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 19,
+        "fields": {
+            "name": "Swift",
+            "category": "development",
+            "is_popular": false
+        }
+    },
+    {
+        "model": "jobs.skill",
+        "pk": 20,
+        "fields": {
+            "name": "Kotlin",
+            "category": "development",
+            "is_popular": false
+        }
+    }
+]

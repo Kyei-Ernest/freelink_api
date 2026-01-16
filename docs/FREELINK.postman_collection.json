@@ -1,0 +1,592 @@
+{
+  "info": {
+    "name": "FREELINK API",
+    "description": "Complete API collection for FREELINK freelance marketplace",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"password2\": \"SecurePass123!\",\n  \"full_name\": \"John Doe\",\n  \"phone\": \"+233244123456\",\n  \"country\": \"Ghana\",\n  \"is_freelancer\": true,\n  \"is_client\": false\n}"
+            },
+            "url": "{{base_url}}/users/register/"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": "{{base_url}}/users/login/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/users/logout/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/profiles/me/"
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Experienced full-stack developer\",\n  \"skills\": [\"Python\", \"Django\", \"React\"],\n  \"hourly_rate\": \"50.00\",\n  \"location\": \"Accra, Ghana\"\n}"
+            },
+            "url": "{{base_url}}/profiles/me/update/"
+          }
+        },
+        {
+          "name": "Get My Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/profiles/stats/"
+          }
+        },
+        {
+          "name": "Get My Referral Code",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/profiles/referral/code/"
+          }
+        },
+        {
+          "name": "Create Referral",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"friend@example.com\"\n}"
+            },
+            "url": "{{base_url}}/profiles/referral/"
+          }
+        },
+        {
+          "name": "List My Referrals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/profiles/referrals/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "List Jobs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/jobs/?status=available&page=1",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", ""],
+              "query": [
+                {"key": "status", "value": "available"},
+                {"key": "page", "value": "1"},
+                {"key": "search", "value": "", "disabled": true},
+                {"key": "ordering", "value": "-created_at", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Job (Client)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Build an E-commerce Website\",\n  \"description\": \"Looking for a developer to build a modern e-commerce site with payment integration.\",\n  \"budget\": \"2500.00\",\n  \"duration\": 30,\n  \"skills_required\": [\"Python\", \"Django\", \"React\"]\n}"
+            },
+            "url": "{{base_url}}/jobs/"
+          }
+        },
+        {
+          "name": "Get Job Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/jobs/1/"
+          }
+        },
+        {
+          "name": "Update Job",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Job Title\",\n  \"budget\": \"3000.00\"\n}"
+            },
+            "url": "{{base_url}}/jobs/1/"
+          }
+        },
+        {
+          "name": "Delete Job",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/jobs/1/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Skills & Badges",
+      "item": [
+        {
+          "name": "List Skills",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/jobs/skills/"
+          }
+        },
+        {
+          "name": "Get Popular Skills",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/jobs/skills/popular/"
+          }
+        },
+        {
+          "name": "List Skill Badges",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/jobs/badges/"
+          }
+        },
+        {
+          "name": "Apply for Badge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"badge\": 1,\n  \"certificate_url\": \"https://example.com/my-certificate\"\n}"
+            },
+            "url": "{{base_url}}/jobs/my-badges/"
+          }
+        },
+        {
+          "name": "Get My Badges",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/jobs/my-badges/my_badges/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Proposals",
+      "item": [
+        {
+          "name": "Submit Proposal (Freelancer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": 1,\n  \"cover_letter\": \"I am excited to work on this project. I have 5 years of experience...\",\n  \"proposed_rate\": \"2000.00\",\n  \"estimated_duration\": 25\n}"
+            },
+            "url": "{{base_url}}/proposals/"
+          }
+        },
+        {
+          "name": "List My Proposals",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/proposals/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contracts",
+      "item": [
+        {
+          "name": "List Contracts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/contracts/contracts/"
+          }
+        },
+        {
+          "name": "Create Contract (Client)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_id\": 1,\n  \"freelancer_id\": 2,\n  \"agreed_bid\": \"2000.00\",\n  \"currency\": \"USD\",\n  \"terms\": {\n    \"deliverables\": [\"Website\", \"Documentation\"],\n    \"revisions\": 3\n  },\n  \"milestones\": [\n    {\"description\": \"Design mockups\", \"amount\": \"500.00\", \"due_date\": \"2026-02-01T00:00:00Z\"},\n    {\"description\": \"Development\", \"amount\": \"1000.00\", \"due_date\": \"2026-02-15T00:00:00Z\"},\n    {\"description\": \"Final delivery\", \"amount\": \"500.00\", \"due_date\": \"2026-03-01T00:00:00Z\"}\n  ]\n}"
+            },
+            "url": "{{base_url}}/contracts/contracts/"
+          }
+        },
+        {
+          "name": "Accept Contract (Freelancer)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/contracts/contracts/{contract_id}/accept/"
+          }
+        },
+        {
+          "name": "Submit Work (Freelancer)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/contracts/contracts/{contract_id}/submit-work/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Project Templates",
+      "item": [
+        {
+          "name": "List Templates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/contracts/templates/"
+          }
+        },
+        {
+          "name": "Get Featured Templates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/contracts/templates/featured/"
+          }
+        },
+        {
+          "name": "Apply Template (Create Job)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"custom_title\": \"My Custom Project Title\",\n  \"custom_budget\": \"3000.00\"\n}"
+            },
+            "url": "{{base_url}}/contracts/templates/1/apply/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Disputes",
+      "item": [
+        {
+          "name": "List Disputes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/disputes/disputes/"
+          }
+        },
+        {
+          "name": "Create Dispute",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contract\": \"contract-uuid-here\",\n  \"reason\": \"quality\",\n  \"description\": \"The delivered work does not match the agreed specifications.\"\n}"
+            },
+            "url": "{{base_url}}/disputes/disputes/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipient\": 2,\n  \"content\": \"Hello! I'm interested in discussing the project.\"\n}"
+            },
+            "url": "{{base_url}}/chat/send/"
+          }
+        },
+        {
+          "name": "Get Inbox",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/chat/inbox/"
+          }
+        },
+        {
+          "name": "Get Sent Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/chat/sent/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/notifications/"
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/notifications/count/"
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/notifications/mark-all-read/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet & Payments",
+      "item": [
+        {
+          "name": "Get Wallet Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/wallet/"
+          }
+        },
+        {
+          "name": "Initialize Deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"100.00\",\n  \"currency\": \"GHS\"\n}"
+            },
+            "url": "{{base_url}}/payments/deposit/"
+          }
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/payments/verify/?reference=paystack_reference_here"
+          }
+        },
+        {
+          "name": "Get Banks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/payments/banks/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ratings",
+      "item": [
+        {
+          "name": "Submit Rating",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job\": 1,\n  \"reviewee\": 2,\n  \"rating\": 5,\n  \"comment\": \"Excellent work! Highly recommended.\"\n}"
+            },
+            "url": "{{base_url}}/ratings/"
+          }
+        },
+        {
+          "name": "List Ratings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Token {{token}}"}
+            ],
+            "url": "{{base_url}}/ratings/"
+          }
+        }
+      ]
+    }
+  ]
+}
