@@ -55,19 +55,15 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id',
-            'username',
+            'full_name',
             'email',
-            'first_name',
-            'last_name',
             'phone',
             'country',
             'is_freelancer',
             'is_client',
             'language_preference',
             'is_verified',
-            #'wallet',
-            #'notifications',
-            #'unread_messages',
+            'is_phone_verified',
         ]
 
     def get_notifications(self, obj):
