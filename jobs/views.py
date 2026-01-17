@@ -2,6 +2,7 @@ from rest_framework import generics, permissions, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, OpenApiParameter, OpenApiResponse
 
 from .models import Job, Skill, SkillBadge, UserSkillBadge
 from .serializers import (
@@ -37,6 +38,66 @@ class IsAdminUser(permissions.BasePermission):
 
 # ============== Job Views ==============
 
+@extend_schema_view(
+    get=extend_schema(
+        tags=['Jobs'],
+        summary='List all jobs',
+        description='''
+        Get a paginated list of all jobs on the platform.
+        
+        **Filtering:**
+        - `?status=available` - Filter by job status
+        - `?client=1` - Filter by client ID
+        
+        **Search:**
+        - `?search=python` - Search in title and description
+        
+        **Ordering:**
+        - `?ordering=-created_at` - Newest first (default)
+        - `?ordering=budget` - Lowest budget first
+        - `?ordering=-budget` - Highest budget first
+        
+        **Pagination:**
+        - Returns 20 items per page
+        - Use `?page=2` for next page
+        ''',
+        parameters=[
+            OpenApiParameter(name='status', description='Filter by status: available, pending, in_progress, completed, cancelled', type=str),
+            OpenApiParameter(name='search', description='Search in title and description', type=str),
+            OpenApiParameter(name='ordering', description='Sort results: created_at, -created_at, budget, -budget', type=str),
+        ]
+    ),
+    post=extend_schema(
+        tags=['Jobs'],
+        summary='Create a new job',
+        description='''
+        Create a new job posting. **Only clients can create jobs.**
+        
+        **Required fields:**
+        - `title`: Job title (max 200 characters)
+        - `description`: Detailed job description
+        - `budget`: Maximum budget in USD
+        
+        **Optional fields:**
+        - `duration`: Estimated duration in days
+        - `deadline`: Job deadline (ISO 8601 format)
+        - `skills_required`: List of skill names
+        ''',
+        examples=[
+            OpenApiExample(
+                'Create Job',
+                value={
+                    "title": "Build an E-commerce Website",
+                    "description": "Looking for an experienced developer to build a modern e-commerce platform with payment integration.",
+                    "budget": "2500.00",
+                    "duration": 30,
+                    "skills_required": ["Python", "Django", "React"]
+                },
+                request_only=True
+            )
+        ]
+    )
+)
 class JobListCreateView(generics.ListCreateAPIView):
     """
     GET: List all jobs.
@@ -64,6 +125,30 @@ class JobListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(client=self.request.user)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        tags=['Jobs'],
+        summary='Get job details',
+        description='Retrieve detailed information about a specific job.'
+    ),
+    put=extend_schema(
+        tags=['Jobs'],
+        summary='Update job (full)',
+        description='Update all job fields. Only the job owner can update.'
+    ),
+    patch=extend_schema(
+        tags=['Jobs'],
+        summary='Update job (partial)',
+        description='Update selected job fields. Only the job owner can update.'
+    ),
+    delete=extend_schema(
+        tags=['Jobs'],
+        summary='Delete job',
+        description='Delete a job. Only the job owner can delete. Cannot delete jobs that are in progress.'
+    )
+)
 
 
 class JobRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
