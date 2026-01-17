@@ -23,13 +23,61 @@ import logging
 from wallet.models import Wallet
 from notifications.models import Notification
 
-
 from rest_framework import generics
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+@extend_schema(
+    tags=['Authentication'],
+    summary='Register a new user',
+    description='''
+    Create a new user account on the FREELINK platform.
+    
+    **User Types:**
+    - `is_freelancer=true`: Register as a freelancer who can apply for jobs
+    - `is_client=true`: Register as a client who can post jobs
+    
+    **Requirements:**
+    - Valid email address (must be unique)
+    - Password must be at least 8 characters
+    - Phone number in international format (e.g., +233244123456)
+    
+    **Returns:** User details with authentication token
+    ''',
+    examples=[
+        OpenApiExample(
+            'Freelancer Registration',
+            value={
+                "email": "john@example.com",
+                "password": "SecurePass123!",
+                "password2": "SecurePass123!",
+                "full_name": "John Doe",
+                "phone": "+233244123456",
+                "country": "Ghana",
+                "is_freelancer": True,
+                "is_client": False
+            },
+            request_only=True
+        ),
+        OpenApiExample(
+            'Client Registration',
+            value={
+                "email": "jane@company.com",
+                "password": "SecurePass123!",
+                "password2": "SecurePass123!",
+                "full_name": "Jane Smith",
+                "phone": "+233244654321",
+                "country": "Ghana",
+                "is_freelancer": False,
+                "is_client": True
+            },
+            request_only=True
+        )
+    ]
+)
 class RegisterView(generics.CreateAPIView):
     """Register a new user account."""
     queryset = User.objects.all()
@@ -49,9 +97,53 @@ class RegisterView(generics.CreateAPIView):
         user = self.get_object()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+
 """
 
 
+@extend_schema(
+    tags=['Authentication'],
+    summary='Login to your account',
+    description='''
+    Authenticate with your email and password to receive an authentication token.
+    
+    **How to use the token:**
+    Include it in the `Authorization` header of subsequent requests:
+    ```
+    Authorization: Token your_token_here
+    ```
+    
+    **Returns:** Authentication token and user details
+    ''',
+    examples=[
+        OpenApiExample(
+            'Login Request',
+            value={
+                "email": "john@example.com",
+                "password": "SecurePass123!"
+            },
+            request_only=True
+        ),
+        OpenApiExample(
+            'Successful Login',
+            value={
+                "token": "a1b2c3d4e5f6g7h8i9j0...",
+                "user": {
+                    "id": 1,
+                    "email": "john@example.com",
+                    "full_name": "John Doe",
+                    "is_freelancer": True,
+                    "is_client": False
+                }
+            },
+            response_only=True
+        )
+    ],
+    responses={
+        200: OpenApiResponse(description='Login successful'),
+        400: OpenApiResponse(description='Invalid credentials')
+    }
+)
 class LoginView(APIView):
     """Authenticate user and return auth token with user details."""
     serializer_class = LoginSerializer
@@ -66,6 +158,20 @@ class LoginView(APIView):
         return Response({"token": token.key, "user": user_data})
 
 
+@extend_schema(
+    tags=['Authentication'],
+    summary='Logout from your account',
+    description='''
+    Log out the current user by invalidating their authentication token.
+    
+    **Note:** After logout, the token will no longer be valid and the user
+    will need to login again to get a new token.
+    ''',
+    responses={
+        200: OpenApiResponse(description='Logged out successfully'),
+        401: OpenApiResponse(description='Authentication required')
+    }
+)
 class LogoutView(APIView):
     """Log out user by deleting token and ending session."""
     permission_classes = [IsAuthenticated]
@@ -78,6 +184,33 @@ class LogoutView(APIView):
         return Response({"detail": "Logged out successfully."}, status=status.HTTP_200_OK)
 
 
+@extend_schema(
+    tags=['Authentication'],
+    summary='Change your password',
+    description='''
+    Change the password for the currently authenticated user.
+    
+    **Requirements:**
+    - Must provide current (old) password
+    - New password must be at least 8 characters
+    - New password must match confirmation
+    ''',
+    examples=[
+        OpenApiExample(
+            'Change Password',
+            value={
+                "old_password": "CurrentPass123!",
+                "new_password": "NewSecurePass456!",
+                "confirm_password": "NewSecurePass456!"
+            },
+            request_only=True
+        )
+    ],
+    responses={
+        200: OpenApiResponse(description='Password updated successfully'),
+        400: OpenApiResponse(description='Invalid current password or validation error')
+    }
+)
 class ChangePasswordView(generics.UpdateAPIView):
     """Change password for the authenticated user."""
     serializer_class = ChangePasswordSerializer
