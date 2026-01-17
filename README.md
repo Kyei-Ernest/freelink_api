@@ -262,7 +262,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ## 📞 Support
 
-- 📧 Email: support@freelink.com
+- 📧 Email: ernestkyei101@gmail.com
 - 📚 Documentation: [API Docs](http://localhost:8000/api/schema/swagger-ui/)
 - 🐛 Issues: [GitHub Issues](https://github.com/your-username/freelink-api/issues)
 
@@ -271,3 +271,4 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 <p align="center">
   Built with ❤️ using Django REST Framework
 </p>
+
