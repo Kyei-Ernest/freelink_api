@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions, serializers
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, OpenApiResponse
 from .models import Proposal
 from .permissions import IsFreelancerUser, IsProposalOwner, IsJobOwnerForStatus
 from .serializers import ProposalSerializer, ProposalStatusSerializer
@@ -7,7 +8,59 @@ from jobs.models import Job
 from contracts.models import Contract
 
 
-
+@extend_schema_view(
+    get=extend_schema(
+        tags=['Proposals'],
+        summary='List proposals',
+        description='''
+        Get a list of proposals.
+        
+        **For Freelancers:** Returns all proposals you have submitted.
+        
+        **For Clients:** Returns all proposals received for your jobs.
+        
+        **Proposal Statuses:**
+        - `submitted`: Awaiting client review
+        - `accepted`: Proposal accepted, contract created
+        - `declined`: Proposal rejected by client
+        - `withdrawn`: Withdrawn by freelancer
+        '''
+    ),
+    post=extend_schema(
+        tags=['Proposals'],
+        summary='Submit a proposal',
+        description='''
+        Submit a new proposal for a job. **Only freelancers can submit proposals.**
+        
+        **Requirements:**
+        - Job must be in `available` status
+        - You cannot submit multiple proposals to the same job
+        
+        **Fields:**
+        - `job`: Job ID to apply for
+        - `cover_letter`: Your pitch for the job
+        - `bid`: Your proposed price
+        - `estimated_duration`: How long you expect to take (days)
+        ''',
+        examples=[
+            OpenApiExample(
+                'Submit Proposal',
+                value={
+                    "job": 1,
+                    "cover_letter": "I am excited about this project! With 5 years of Django experience and 20+ e-commerce projects, I can deliver a high-quality solution.",
+                    "bid": "2000.00",
+                    "estimated_duration": 25
+                },
+                request_only=True
+            )
+        ],
+        responses={
+            201: OpenApiResponse(description='Proposal submitted successfully'),
+            400: OpenApiResponse(description='Validation error or job not available'),
+            403: OpenApiResponse(description='Only freelancers can submit proposals')
+        }
+    )
+)
 class ProposalListCreateView(generics.ListCreateAPIView):
     """
     - GET:
@@ -43,6 +96,17 @@ class ProposalListCreateView(generics.ListCreateAPIView):
         serializer.save(freelancer=self.request.user, job=job)
 
 
+@extend_schema(
+    tags=['Proposals'],
+    summary='Get proposal details',
+    description='''
+    Retrieve details of a specific proposal.
+    
+    **Accessible by:**
+    - The freelancer who submitted it
+    - The client who owns the job
+    '''
+)
 class ProposalRetrieveView(generics.RetrieveAPIView):
     """
     Retrieve a single proposal.
@@ -55,6 +119,39 @@ class ProposalRetrieveView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, IsProposalOwner]
 
 
+@extend_schema(
+    tags=['Proposals'],
+    summary='Accept or decline a proposal',
+    description='''
+    Update the status of a proposal. **Only the job owner (client) can do this.**
+    
+    **Actions:**
+    - `accepted`: Creates a contract, assigns freelancer, declines other proposals
+    - `declined`: Rejects this proposal
+    
+    **What happens when accepted:**
+    1. A new Contract is created between client and freelancer
+    2. The job status changes to `in_progress`
+    3. The freelancer is assigned to the job
+    4. All other proposals for this job are automatically declined
+    ''',
+    examples=[
+        OpenApiExample(
+            'Accept Proposal',
+            value={"status": "accepted"},
+            request_only=True
+        ),
+        OpenApiExample(
+            'Decline Proposal',
+            value={"status": "declined"},
+            request_only=True
+        )
+    ],
+    responses={
+        200: OpenApiResponse(description='Status updated successfully'),
+        403: OpenApiResponse(description='Only the job owner can update proposal status')
+    }
+)
 class ProposalUpdateStatusView(generics.UpdateAPIView):
     """
     Endpoint for clients to update a proposal's status.
@@ -85,3 +182,4 @@ class ProposalUpdateStatusView(generics.UpdateAPIView):
             Proposal.objects.filter(job=proposal.job).exclude(id=proposal.id).update(status='declined')
 
         serializer.save()
+

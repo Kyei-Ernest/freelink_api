@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
 import secrets
 import string
 
@@ -19,6 +20,19 @@ from .serializers import (
 User = get_user_model()
 
 
+@extend_schema(
+    tags=['Profile'],
+    summary='Get my profile',
+    description='''
+    Retrieve the complete profile of the currently authenticated user.
+    
+    **Includes:**
+    - Personal information (name, email, phone)
+    - Profile details (bio, skills, hourly rate)
+    - Performance stats (response time, rating, jobs completed)
+    - Verification status
+    '''
+)
 class MyProfileView(generics.RetrieveAPIView):
     """GET /profile/me/ → View your own profile with stats."""
     serializer_class = ProfileSerializer
@@ -30,6 +44,32 @@ class MyProfileView(generics.RetrieveAPIView):
         return self.request.user.profile
 
 
+@extend_schema(
+    tags=['Profile'],
+    summary='Update my profile',
+    description='''
+    Update the profile of the currently authenticated user.
+    
+    **Updatable fields:**
+    - `bio`: About me section
+    - `skills`: List of skills (for freelancers)
+    - `hourly_rate`: Rate per hour (for freelancers)
+    - `company_name`: Company name (for clients)
+    - `location`, `website`, `profile_picture`
+    ''',
+    examples=[
+        OpenApiExample(
+            'Update Profile',
+            value={
+                "bio": "Experienced full-stack developer with 5 years of Django expertise.",
+                "skills": ["Python", "Django", "React", "PostgreSQL"],
+                "hourly_rate": "50.00",
+                "location": "Accra, Ghana"
+            },
+            request_only=True
+        )
+    ]
+)
 class MyProfileUpdateView(generics.UpdateAPIView):
     """PATCH /profile/me/update/ → Update your own profile."""
     serializer_class = ProfileUpdateSerializer
@@ -39,6 +79,11 @@ class MyProfileUpdateView(generics.UpdateAPIView):
         return self.request.user.profile
 
 
+@extend_schema(
+    tags=['Profile'],
+    summary='View public profile',
+    description='View the public profile of another user by their email address.'
+)
 class PublicProfileView(generics.RetrieveAPIView):
     """GET /profile/<email>/ → View a public profile."""
     serializer_class = PublicProfileSerializer
@@ -49,6 +94,20 @@ class PublicProfileView(generics.RetrieveAPIView):
         return Profile.objects.select_related('user').all()
 
 
+@extend_schema(
+    tags=['Profile'],
+    summary='Get my performance stats',
+    description='''
+    Retrieve your performance statistics.
+    
+    **Metrics:**
+    - Average response time
+    - Jobs completed count
+    - On-time delivery rate
+    - Average rating
+    - Last online timestamp
+    '''
+)
 class MyStatsView(generics.RetrieveAPIView):
     """GET /profile/stats/ → View your performance stats."""
     serializer_class = UserStatsSerializer
